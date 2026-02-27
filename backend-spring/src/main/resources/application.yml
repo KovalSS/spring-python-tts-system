@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: backend-spring
+
+config:
+  minio:
+    url: http://localhost:9000
+    user: admin
+    password: password123
+
+  buckets:
+    name: yourBucketName
