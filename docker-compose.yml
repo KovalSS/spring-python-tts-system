@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: tts-rabbitmq
+    ports:
+      - "5672:5672"   # Порт для підключення мікросервісів
+      - "15672:15672" # Порт для веб-інтерфейсу (можна зайти через браузер)
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    restart: always
+
+  minio:
+    image: minio/minio
+    container_name: tts-minio
+    ports:
+      - "9000:9000"   # Порт для API (сюди будуть звертатися Spring та Python)
+      - "9001:9001"   # Порт для веб-консолі MinIO
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: always
+
+volumes:
+  minio_data:
