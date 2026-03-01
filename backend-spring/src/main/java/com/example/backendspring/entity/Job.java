@@ -4,16 +4,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
 
+@Entity
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-@Entity
-public class FileEntity {
+@RequiredArgsConstructor
+@Builder
+public class Job {
 
     @Id
     @GeneratedValue
@@ -21,5 +23,9 @@ public class FileEntity {
 
     private UUID userId;
 
-    private String filePath;
+    private String sourceFile;
+    private String resultFile;
+
+    private JobStatus status;
+    private String fileName;
 }
