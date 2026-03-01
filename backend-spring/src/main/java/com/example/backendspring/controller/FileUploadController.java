@@ -1,6 +1,7 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.security.UserContext;
 import com.example.backendspring.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +20,8 @@ import java.util.UUID;
 @RequestMapping("/api/v1/file")
 public class FileUploadController {
 
-    private final Path rootLocation = Paths.get("doc-uploads");
     private final StorageService storageService;
+    private final UserContext userContext;
 
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file")MultipartFile file){
