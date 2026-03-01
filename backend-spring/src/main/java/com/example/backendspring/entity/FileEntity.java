@@ -1,12 +1,9 @@
 package com.example.backendspring.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.UUID;
 
 @Data
@@ -16,10 +13,13 @@ import java.util.UUID;
 public class FileEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private UUID userId;
+    private String text;       // Текст для озвучки
+    private String voiceId;    // Обраний голос
+    private String filePath;   // Шлях до згенерованого файлу
 
-    private String filePath;
+    @Enumerated(EnumType.STRING)
+    private FileStatus status; // Наш життєвий цикл
 }

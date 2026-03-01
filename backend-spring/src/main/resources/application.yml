@@ -1,6 +1,17 @@
 spring:
   application:
     name: backend-spring
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tts_db
+    username: root
+    password: rootpassword
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 config:
   minio:
