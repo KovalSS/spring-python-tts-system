@@ -1,12 +1,12 @@
 package com.example.backendspring.config;
 
 import io.minio.MinioClient;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Setter
+@Data
 @Configuration
 @ConfigurationProperties(prefix="config.minio")
 public class MinioConfig {
