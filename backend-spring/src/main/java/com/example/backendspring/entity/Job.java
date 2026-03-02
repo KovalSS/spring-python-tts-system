@@ -1,8 +1,6 @@
 package com.example.backendspring.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,9 +21,14 @@ public class Job {
 
     private UUID userId;
 
+    private String text;
+    private String voiceId;
+
     private String sourceFile;
     private String resultFile;
 
+    @Enumerated(EnumType.STRING)
     private JobStatus status;
+
     private String fileName;
 }

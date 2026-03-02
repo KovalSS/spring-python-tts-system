@@ -26,5 +26,17 @@ services:
       - minio_data:/data
     restart: always
 
+  postgres:
+    image: postgres:15
+    container_name: tts-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: tts_db
+      TZ: Europe/Athens
+    restart: always
+
 volumes:
   minio_data:

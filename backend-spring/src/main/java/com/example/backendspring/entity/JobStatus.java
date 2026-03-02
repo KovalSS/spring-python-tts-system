@@ -1,5 +1,9 @@
 package com.example.backendspring.entity;
 
 public enum JobStatus {
-    NEW, SENT, INPROGRESS, DONE, FAILED
+    CREATED,    // Щойно створено
+    QUEUED,     // Відправлено в RabbitMQ
+    PROCESSING, // Python генерує аудіо
+    DONE,       // Успішно згенеровано
+    ERROR       // Помилка
 }

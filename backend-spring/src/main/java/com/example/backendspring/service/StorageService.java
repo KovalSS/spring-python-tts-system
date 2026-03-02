@@ -47,7 +47,7 @@ public class StorageService {
                     .fileName(fileName)
                     .sourceFile(path)
                     .userId(userId)
-                    .status(JobStatus.NEW)
+                    .status(JobStatus.CREATED)
                     .build();
 
             jobRepository.save(job);
