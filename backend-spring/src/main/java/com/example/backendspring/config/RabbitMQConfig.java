@@ -1,5 +1,6 @@
 package com.example.backendspring.config;
 
+import com.example.backendspring.config.properties.RabbitMQProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Queue;
 import org.springframework.context.annotation.Bean;

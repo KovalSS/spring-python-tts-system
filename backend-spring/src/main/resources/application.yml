@@ -27,7 +27,10 @@ config:
     user: admin
     password: password123
 
-  buckets:
-    text: text-bucket
-    speech: speech-bucket
+    buckets:
+      text: text-bucket
+      speech: speech-bucket
 
+  jwt:
+    expiration-days: 7
+    secret: 675f1e19f9bc429dde298da7c88a676c # todo: Replace with environment variable ;) <==3

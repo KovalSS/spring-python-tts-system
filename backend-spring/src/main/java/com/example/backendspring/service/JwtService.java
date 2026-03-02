@@ -1,8 +1,10 @@
 package com.example.backendspring.service;
 
+import com.example.backendspring.config.properties.JwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -10,25 +12,27 @@ import java.util.Date;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
-    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private static final long EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
+    private final JwtProperties jwtProperties;
+    private final SecretKey secretKey;
 
     public String generateToken(UUID userId) {
+        Date expiration = new Date(System.currentTimeMillis() + jwtProperties.expirationDays() * 24 * 60 * 60 * 1000);
         return Jwts.builder()
                 .subject(userId.toString())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
-                .signWith(key)
+                .expiration(expiration)
+                .signWith(secretKey)
                 .compact();
     }
 
     public UUID extractUserId(String token) {
         String userId = Jwts.parser()
-                .setSigningKey(key)
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject();
         return UUID.fromString(userId);
     }

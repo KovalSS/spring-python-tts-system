@@ -1,4 +1,4 @@
-package com.example.backendspring.config;
+package com.example.backendspring.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

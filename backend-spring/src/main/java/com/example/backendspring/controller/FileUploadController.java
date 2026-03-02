@@ -42,6 +42,7 @@ public class FileUploadController {
 
     @GetMapping("/file-list")
     public ResponseEntity<List<Job>> getAllFiles(){
+        log.info("User with id {} request job list", userContext.getUserId());
         return ResponseEntity.ok(storageService.getAllFiles());
     }
 }

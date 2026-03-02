@@ -1,6 +1,7 @@
 package com.example.backendspring.service;
 
 
+import com.example.backendspring.config.properties.MinioBucketsProperties;
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
 import com.example.backendspring.repository.JobRepository;
@@ -19,15 +20,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StorageService {
 
-    private static final String TEXT_BUCKET_NAME = "text-files";
+    private final MinioBucketsProperties buckets;
     private final MinioClient minioClient;
     private final JobRepository jobRepository;
 
     public void loadTextFile(MultipartFile file, UUID userId){
         try (InputStream inputStream = file.getInputStream()) {
-            boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(TEXT_BUCKET_NAME).build());
+            boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(buckets.text()).build());
             if (!found) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(TEXT_BUCKET_NAME).build());
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(buckets.text()).build());
             }
 
             String fileName = file.getOriginalFilename();
@@ -35,7 +36,7 @@ public class StorageService {
             String path = UUID.randomUUID() + fileName;
             minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(TEXT_BUCKET_NAME)
+                            .bucket(buckets.text())
                             .object(path)
                             .contentType(file.getContentType())
                             .stream(inputStream, file.getSize(), -1)
