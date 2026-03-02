@@ -43,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userContext.setUserId(userId);
             } catch (Exception e) {
                 log.error("Authorization exception");
+                log.error(e.getMessage());
                 SecurityContextHolder.clearContext();
             }
         }
