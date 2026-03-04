@@ -1,28 +1,118 @@
 import asyncio
+import json
 import edge_tts
+import aio_pika
+import os
 
-TEXT = "Привіт! Тепер я говорю трохи швидше, а мій голос звучить трохи вище, ніж зазвичай."
-VOICE = "uk-UA-OstapNeural"
+# RabbitMQ configuration (from docker-compose)
+RABBITMQ_URL = "amqp://user:password@localhost:5672/"
+INPUT_QUEUE = "tts_requests"  # Java writes here, Python reads
+OUTPUT_QUEUE = "tts_responses"  # Python writes here, Java reads
 
-# Назва файлу для нового тесту
-OUTPUT_FILE = "test_custom_audio.mp3"
+
+class TTSEngine:
+    """Class responsible exclusively for audio generation"""
+
+    @staticmethod
+    async def generate_audio(job_id: str, text: str, voice: str, rate: str, pitch: str, volume: str) -> str:
+        print(
+            f"[{job_id}] Starting audio generation with settings: Voice={voice}, Rate={rate}, Pitch={pitch}, Volume={volume}")
+
+        # Create results folder if it doesn't exist
+        os.makedirs("results", exist_ok=True)
+        output_file = f"results/{job_id}.mp3"
+
+        communicate = edge_tts.Communicate(
+            text=text,
+            voice=voice,
+            rate=rate,
+            pitch=pitch,
+            volume=volume
+        )
+        await communicate.save(output_file)
+        print(f"[{job_id}] Done! File saved to: {output_file}")
+
+        return output_file
 
 
-async def generate_audio():
-    print("⏳ Починаємо кастомну генерацію...")
+class RabbitMQWorker:
+    """Class responsible for RabbitMQ connection and process coordination"""
 
-    # Додаємо параметри у Communicate
-    communicate = edge_tts.Communicate(
-        text=TEXT,
-        voice=VOICE,
-        rate="+25%",  # Пришвидшуємо на 25%
-        pitch="+15Hz",  # Робимо голос вищим на 15 Герц
-        volume="+10%"  # Трохи додаємо гучності
-    )
+    def __init__(self, amqp_url: str):
+        self.amqp_url = amqp_url
+        self.connection = None
+        self.channel = None
 
-    await communicate.save(OUTPUT_FILE)
-    print(f"✅ Готово! Аудіо збережено у файл: {OUTPUT_FILE}")
+    async def connect(self):
+        print("Connecting to RabbitMQ...")
+        self.connection = await aio_pika.connect_robust(self.amqp_url)
+        self.channel = await self.connection.channel()
+
+        # Declare queues to ensure they exist
+        await self.channel.declare_queue(INPUT_QUEUE, durable=True)
+        await self.channel.declare_queue(OUTPUT_QUEUE, durable=True)
+        print("Connected successfully! Waiting for tasks...")
+
+    async def send_status_update(self, job_id: str, status: str, result_file: str = None, error_msg: str = None):
+        """Sends status update message back to Java"""
+        message_body = {
+            "jobId": job_id,
+            "status": status,
+            "resultFile": result_file,
+            "error": error_msg
+        }
+
+        await self.channel.default_exchange.publish(
+            aio_pika.Message(
+                body=json.dumps(message_body).encode(),
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+            ),
+            routing_key=OUTPUT_QUEUE
+        )
+        print(f"[{job_id}] Status update sent: {status}")
+
+    async def process_message(self, message: aio_pika.abc.AbstractIncomingMessage):
+        """Processes a single message from the queue"""
+        async with message.process():  # Automatically acknowledges (ack) upon success
+            try:
+                data = json.loads(message.body.decode())
+                job_id = data.get("jobId")
+                text = data.get("text")
+
+                voice = data.get("voiceId", "uk-UA-OstapNeural")
+                rate = data.get("rate", "+0%")
+                pitch = data.get("pitch", "+0Hz")
+                volume = data.get("volume", "+0%")
+
+                print(f"\nReceived task: {job_id}")
+
+                # 1. Notify Java that processing has started
+                await self.send_status_update(job_id, "PROCESSING")
+
+                # 2. Generate audio with dynamic parameters
+                output_file = await TTSEngine.generate_audio(job_id, text, voice, rate, pitch, volume)
+
+                # 3. Notify Java about success
+                await self.send_status_update(job_id, "DONE", result_file=output_file)
+
+            except Exception as e:
+                print(f"Error processing task: {e}")
+                # Notify Java about error
+                if 'job_id' in locals():
+                    await self.send_status_update(job_id, "ERROR", error_msg=str(e))
+
+    async def start_consuming(self):
+        """Starts infinite loop to consume messages from the queue"""
+        queue = await self.channel.get_queue(INPUT_QUEUE)
+        await queue.consume(self.process_message)
+        await asyncio.Future()
+
+
+async def main():
+    worker = RabbitMQWorker(RABBITMQ_URL)
+    await worker.connect()
+    await worker.start_consuming()
 
 
 if __name__ == "__main__":
-    asyncio.run(generate_audio())
+    asyncio.run(main())
