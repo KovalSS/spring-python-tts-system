@@ -20,6 +20,7 @@ public class MessageService {
     private final RabbitMQProperties properties;
     private final RabbitTemplate rabbitTemplate;
     private final JobRepository jobRepository;
+    private final ObjectMapper objectMapper;
 
     public void sendJobToQueue(Job job) {
         if (job.getStatus() == JobStatus.QUEUED ||
@@ -47,6 +48,28 @@ public class MessageService {
             log.info("Job {} sent to RabbitMQ", job.getId());
         } catch (Exception e) {
             log.error("Error sending to RabbitMQ", e);
+        }
+    }
+
+    // Listen for responses from Python worker
+    @RabbitListener(queues = "${spring.rabbitmq.queue.output-queue}")
+    public void receiveStatusUpdate(String message) {
+        try {
+            Map<String, String> data = objectMapper.readValue(message, new TypeReference<>() {});
+            UUID jobId = UUID.fromString(data.get("jobId"));
+            String statusStr = data.get("status");
+            String resultFile = data.get("resultFile");
+
+            jobRepository.findById(jobId).ifPresent(job -> {
+                job.setStatus(JobStatus.valueOf(statusStr));
+                if (resultFile != null) {
+                    job.setResultFile(resultFile);
+                }
+                jobRepository.save(job);
+                log.info("Updated status for job {}: {}", jobId, statusStr);
+            });
+        } catch (Exception e) {
+            log.error("Error processing message from RabbitMQ", e);
         }
     }
 }

@@ -70,4 +70,20 @@ public class JobController {
         }
         return ResponseEntity.ok(message);
     }
+
+//     @PostMapping("/{id}/start")
+//     public ResponseEntity<Job> startExistingJob(@PathVariable UUID id) {
+//         return jobRepository.findById(id).map(job -> {
+//             if (!job.getUserId().equals(userContext.getUserId())) {
+//                 return ResponseEntity.status(403).body(job); // Forbidden
+//             }
+
+//             if (job.getStatus() == JobStatus.ERROR) {
+//                 job.setStatus(JobStatus.CREATED);
+//             }
+
+//             messageService.sendJobToQueue(job);
+//             return ResponseEntity.ok(job);
+//         }).orElse(ResponseEntity.notFound().build());
+//     }
 }
