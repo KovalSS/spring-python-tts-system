@@ -13,9 +13,13 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 @Builder
 public class StartJobMessage implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -5614025147673846636L;
 
     private String jobId;
     private String sourcePath;
+
+    private String text;
+    private String voiceId;
+    private String rate;
+    private String pitch;
+    private String volume;
 }
