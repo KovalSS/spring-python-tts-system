@@ -5,13 +5,17 @@ import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
 import com.example.backendspring.model.StartJobMessage;
 import com.example.backendspring.repository.JobRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -22,12 +26,12 @@ public class MessageService {
     private final JobRepository jobRepository;
     private final ObjectMapper objectMapper;
 
-    public void sendJobToQueue(Job job) {
+    public StartJobMessage sendJobToQueue(Job job) {
         if (job.getStatus() == JobStatus.QUEUED ||
                 job.getStatus() == JobStatus.PROCESSING ||
                 job.getStatus() == JobStatus.DONE) {
             log.warn("Job {} is already in status {}. Skipping RabbitMQ.", job.getId(), job.getStatus());
-            return;
+            return null;
         }
 
         try {
@@ -46,16 +50,17 @@ public class MessageService {
             jobRepository.save(job);
 
             log.info("Job {} sent to RabbitMQ", job.getId());
+            return message;
         } catch (Exception e) {
             log.error("Error sending to RabbitMQ", e);
+            return null;
         }
     }
 
     // Listen for responses from Python worker
     @RabbitListener(queues = "${spring.rabbitmq.queue.output-queue}")
-    public void receiveStatusUpdate(String message) {
+    public void receiveStatusUpdate(Map<String, String> data) {
         try {
-            Map<String, String> data = objectMapper.readValue(message, new TypeReference<>() {});
             UUID jobId = UUID.fromString(data.get("jobId"));
             String statusStr = data.get("status");
             String resultFile = data.get("resultFile");

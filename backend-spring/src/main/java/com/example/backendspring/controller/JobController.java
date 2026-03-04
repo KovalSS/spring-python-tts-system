@@ -57,18 +57,14 @@ public class JobController {
     @PostMapping("/{id}/push")
     public ResponseEntity<StartJobMessage> publishJob(@PathVariable UUID id){
         Job found = jobService.findById(id, userContext.getUserId());
-        StartJobMessage message = StartJobMessage.builder()
-                .jobId(found.getId().toString())
-                .sourcePath(found.getSourceFile())
-                .build();
         try{
-            messageService.pushJob(message);
+            StartJobMessage message =  messageService.sendJobToQueue(found);
+            return ResponseEntity.ok(message);
         } catch (Exception e){
             log.error("Error during publishing message");
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
-        return ResponseEntity.ok(message);
     }
 
 //     @PostMapping("/{id}/start")
