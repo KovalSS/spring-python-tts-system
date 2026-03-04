@@ -24,7 +24,7 @@ public class StorageService {
     private final MinioClient minioClient;
     private final JobRepository jobRepository;
 
-    public void loadTextFile(MultipartFile file, UUID userId){
+    public Job loadTextFile(MultipartFile file, UUID userId){
         try (InputStream inputStream = file.getInputStream()) {
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(buckets.text()).build());
             if (!found) {
@@ -50,7 +50,7 @@ public class StorageService {
                     .status(JobStatus.CREATED)
                     .build();
 
-            jobRepository.save(job);
+            return jobRepository.save(job);
         } catch (Exception e) {
             log.error("Error occurred during loading file {}", file.getName());
             log.error(e.getMessage());
