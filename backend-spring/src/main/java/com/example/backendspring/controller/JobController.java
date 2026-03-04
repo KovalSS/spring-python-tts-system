@@ -3,6 +3,8 @@ package com.example.backendspring.controller;
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
 import com.example.backendspring.repository.JobRepository;
+import com.example.backendspring.security.UserContext;
+import com.example.backendspring.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,17 @@ import java.util.UUID;
 public class JobController {
 
     private final JobRepository jobRepository;
+    private final MessageService messageService; // Додали сервіс
+    private final UserContext userContext;
 
     @PostMapping
     public ResponseEntity<Job> createJob(@RequestBody Job jobRequest) {
         jobRequest.setStatus(JobStatus.CREATED);
+
+        jobRequest.setUserId(userContext.getUserId());
+
         Job savedJob = jobRepository.save(jobRequest);
+        messageService.sendJobToQueue(savedJob);
         return ResponseEntity.ok(savedJob);
     }
 
@@ -51,5 +59,21 @@ public class JobController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{id}/start")
+    public ResponseEntity<Job> startExistingJob(@PathVariable UUID id) {
+        return jobRepository.findById(id).map(job -> {
+            if (!job.getUserId().equals(userContext.getUserId())) {
+                return ResponseEntity.status(403).body(job); // Forbidden
+            }
+
+            if (job.getStatus() == JobStatus.ERROR) {
+                job.setStatus(JobStatus.CREATED);
+            }
+
+            messageService.sendJobToQueue(job);
+            return ResponseEntity.ok(job);
+        }).orElse(ResponseEntity.notFound().build());
     }
 }

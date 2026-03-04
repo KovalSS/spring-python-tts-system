@@ -23,6 +23,9 @@ public class Job {
 
     private String text;
     private String voiceId;
+    private String rate;
+    private String pitch;
+    private String volume;
 
     private String sourceFile;
     private String resultFile;
