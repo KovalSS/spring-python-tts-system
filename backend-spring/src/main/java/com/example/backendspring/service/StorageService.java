@@ -58,9 +58,30 @@ public class StorageService {
         }
     }
 
-    public List<Job> getAllFiles(){
-        return jobRepository.findAll();
-    }
+    public InputStream downloadFile(Job job) throws Exception {
 
+        if(!job.getStatus().equals(JobStatus.DONE)){
+            log.error("Job {} is not done yet", job.getId());
+            throw new IllegalStateException("The job is not done");
+        }
+
+        if(job.getResultFile()==null){
+            log.error("Job {} don't have result file", job.getId());
+            throw new IllegalStateException("The job is not done yet");
+        }
+
+        try{
+            InputStream stream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(buckets.speech())
+                            .object(job.getResultFile())
+                            .build());
+            return stream;
+        } catch (Exception e) {
+            log.error("Error while loading object {} from minio", job.getResultFile());
+            throw new RuntimeException(e);
+        }
+
+    }
 
 }
