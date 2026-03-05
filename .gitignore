@@ -1,12 +1,26 @@
-# Default ignored files
+# IDE (IntelliJ, PyCharm)
+.idea/
+*.iws
+*.iml
+*.ipr
 /shelf/
-/.idea/workspace.xml
-# Editor-based HTTP Client requests
 /httpRequests/
-# Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-/.idea/
+
+# Java (Spring Boot)
 /backend-spring/target/
-/doc-uploads/
 /backend-spring/backend-spring.iml
+/doc-uploads/
+*.log
+
+# Python (Worker)
+worker-python/__pycache__/
+worker-python/*.py[cod]
+worker-python/venv/
+worker-python/.venv/
+worker-python/results/
+
+# System files
+.DS_Store
+Thumbs.db

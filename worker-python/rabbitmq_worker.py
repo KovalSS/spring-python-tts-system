@@ -1,9 +1,12 @@
 # rabbitmq_worker.py
 import asyncio
 import json
+import os
 import aio_pika
-from config import INPUT_QUEUE, OUTPUT_QUEUE
+from minio import Minio
+from config import INPUT_QUEUE, OUTPUT_QUEUE, MINIO_URL, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, TEXT_BUCKET, SPEECH_BUCKET
 from tts_engine import TTSEngine
+
 
 class RabbitMQWorker:
     """Class responsible for RabbitMQ connection and process coordination"""
@@ -12,6 +15,16 @@ class RabbitMQWorker:
         self.amqp_url = amqp_url
         self.connection = None
         self.channel = None
+
+        self.minio_client = Minio(
+            MINIO_URL,
+            access_key=MINIO_ACCESS_KEY,
+            secret_key=MINIO_SECRET_KEY,
+            secure=False
+        )
+
+        if not self.minio_client.bucket_exists(SPEECH_BUCKET):
+            self.minio_client.make_bucket(SPEECH_BUCKET)
 
     async def connect(self):
         print("Connecting to RabbitMQ...")
@@ -43,11 +56,12 @@ class RabbitMQWorker:
 
     async def process_message(self, message: aio_pika.abc.AbstractIncomingMessage):
         """Processes a single message from the queue"""
-        async with message.process():  # Automatically acknowledges (ack) upon success
+        async with message.process():
             try:
                 data = json.loads(message.body.decode())
                 job_id = data.get("jobId")
                 text = data.get("text")
+                source_path = data.get("sourcePath")
 
                 voice = data.get("voiceId", "uk-UA-OstapNeural")
                 rate = data.get("rate", "+0%")
@@ -56,18 +70,38 @@ class RabbitMQWorker:
 
                 print(f"\nReceived task: {job_id}")
 
-                # 1. Notify Java that processing has started
                 await self.send_status_update(job_id, "PROCESSING")
 
-                # 2. Generate audio with dynamic parameters
-                output_file = await TTSEngine.generate_audio(job_id, text, voice, rate, pitch, volume)
+                actual_text = text
 
-                # 3. Notify Java about success
-                await self.send_status_update(job_id, "DONE", result_file=output_file)
+                if source_path and not actual_text:
+                    print(f"[{job_id}] Downloading text file {source_path} from MinIO...")
+                    response = self.minio_client.get_object(TEXT_BUCKET, source_path)
+                    actual_text = response.read().decode('utf-8')
+                    response.close()
+                    response.release_conn()
+
+                if not actual_text:
+                    raise ValueError("Ні текст, ні файл не були передані!")
+
+                local_output_file = await TTSEngine.generate_audio(job_id, actual_text, voice, rate, pitch, volume)
+
+                result_object_name = f"{job_id}.mp3"
+                self.minio_client.fput_object(
+                    SPEECH_BUCKET,
+                    result_object_name,
+                    local_output_file,
+                    content_type="audio/mpeg"
+                )
+                print(f"[{job_id}] Audio uploaded to MinIO as {result_object_name}")
+
+                if os.path.exists(local_output_file):
+                    os.remove(local_output_file)
+
+                await self.send_status_update(job_id, "DONE", result_file=result_object_name)
 
             except Exception as e:
                 print(f"Error processing task: {e}")
-                # Notify Java about error
                 if 'job_id' in locals():
                     await self.send_status_update(job_id, "ERROR", error_msg=str(e))
 
