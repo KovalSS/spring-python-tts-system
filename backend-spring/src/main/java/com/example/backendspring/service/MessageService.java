@@ -4,6 +4,7 @@ import com.example.backendspring.config.properties.RabbitMQProperties;
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
 import com.example.backendspring.model.StartJobMessage;
+import com.example.backendspring.model.UpdateJobMessage;
 import com.example.backendspring.repository.JobRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,6 @@ public class MessageService {
     private final RabbitMQProperties properties;
     private final RabbitTemplate rabbitTemplate;
     private final JobRepository jobRepository;
-    private final ObjectMapper objectMapper;
 
     public StartJobMessage sendJobToQueue(Job job) {
         if (job.getStatus() == JobStatus.QUEUED ||
@@ -59,19 +59,16 @@ public class MessageService {
 
     // Listen for responses from Python worker
     @RabbitListener(queues = "${spring.rabbitmq.queue.output-queue}")
-    public void receiveStatusUpdate(Map<String, String> data) {
+    public void receiveStatusUpdate(UpdateJobMessage message) {
         try {
-            UUID jobId = UUID.fromString(data.get("jobId"));
-            String statusStr = data.get("status");
-            String resultFile = data.get("resultFile");
-
-            jobRepository.findById(jobId).ifPresent(job -> {
-                job.setStatus(JobStatus.valueOf(statusStr));
-                if (resultFile != null) {
-                    job.setResultFile(resultFile);
+            JobStatus newStatus = JobStatus.valueOf(message.getStatus());
+            jobRepository.findById(message.getJobId()).ifPresent(job -> {
+                job.setStatus(newStatus);
+                if (message.getResultFile() != null) {
+                    job.setResultFile(message.getResultFile());
                 }
                 jobRepository.save(job);
-                log.info("Updated status for job {}: {}", jobId, statusStr);
+                log.info("Updated status for job {}: {}", message.getJobId(), newStatus);
             });
         } catch (Exception e) {
             log.error("Error processing message from RabbitMQ", e);

@@ -12,8 +12,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties({RabbitMQProperties.class, JwtProperties.class, MinioProperties.class, MinioBucketsProperties.class})
 public class AppConfig {
-    @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
 }
