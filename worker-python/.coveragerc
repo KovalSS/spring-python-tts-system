@@ -1,0 +1,5 @@
+[run]
+omit =
+    test_sender.py
+    main.py
+    tests/*
