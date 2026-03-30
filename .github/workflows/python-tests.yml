@@ -2,9 +2,7 @@ name: Python Worker Tests
 
 on:
   push:
-    branches: [ "main", "lab2-python-tests" ] 
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   test-python:
