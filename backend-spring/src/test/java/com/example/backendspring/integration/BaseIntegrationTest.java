@@ -5,7 +5,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.GenericContainer;
 
-public abstract class PostgresContainerSupport {
+public abstract class BaseIntegrationTest {
 
     @SuppressWarnings("resource")
     private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:15-alpine")

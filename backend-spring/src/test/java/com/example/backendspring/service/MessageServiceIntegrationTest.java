@@ -2,7 +2,7 @@ package com.example.backendspring.service;
 
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
-import com.example.backendspring.integration.PostgresContainerSupport;
+import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.model.UpdateJobMessage;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.support.TestResources;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-class MessageServiceIntegrationTest extends PostgresContainerSupport {
+class MessageServiceIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private MessageService messageService;

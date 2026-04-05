@@ -2,11 +2,10 @@ package com.example.backendspring.security;
 
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
-import com.example.backendspring.integration.PostgresContainerSupport;
+import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +26,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
-class DataOwnershipSecurityTest extends PostgresContainerSupport {
+class DataOwnershipSecurityTest extends BaseIntegrationTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;

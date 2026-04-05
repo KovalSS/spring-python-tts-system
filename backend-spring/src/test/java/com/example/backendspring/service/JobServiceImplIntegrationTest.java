@@ -3,7 +3,7 @@ package com.example.backendspring.service;
 import com.example.backendspring.controller.exceptions.NotFoundException;
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
-import com.example.backendspring.integration.PostgresContainerSupport;
+import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.support.TestResources;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-class JobServiceImplIntegrationTest extends PostgresContainerSupport {
+class JobServiceImplIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private JobService jobService;

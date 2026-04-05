@@ -2,7 +2,7 @@ package com.example.backendspring.security;
 
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
-import com.example.backendspring.integration.PostgresContainerSupport;
+import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
 @DisplayName("Security Integration Tests")
-class SecurityIntegrationTest extends PostgresContainerSupport {
+class SecurityIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
