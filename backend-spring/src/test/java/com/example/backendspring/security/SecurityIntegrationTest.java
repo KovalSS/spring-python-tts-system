@@ -144,7 +144,9 @@ class SecurityIntegrationTest extends PostgresContainerSupport {
         mockMvc.perform(get("/api/v1/jobs/" + savedJob.getId())
                 .header("Authorization", "Bearer " + validUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").isString());
+                .andExpect(jsonPath("$.id").isString())
+                .andExpect(jsonPath("$.sourceFile").doesNotExist())
+                .andExpect(jsonPath("$.resultFile").doesNotExist());
     }
 
     @Test

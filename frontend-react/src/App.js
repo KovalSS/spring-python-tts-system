@@ -52,10 +52,19 @@ function mergeJobUpdate(jobs, update) {
   nextJobs[index] = {
     ...nextJobs[index],
     status: update.status || nextJobs[index].status,
-    resultFile: update.resultFile || nextJobs[index].resultFile,
   };
 
   return nextJobs;
+}
+
+function getDownloadName(job) {
+  const fallback = `${job.id}.mp3`;
+  if (!job?.fileName) {
+    return fallback;
+  }
+
+  const baseName = String(job.fileName).replace(/\.[^/.]+$/, '');
+  return `${baseName || job.id}.mp3`;
 }
 
 function jobTtsSummary(job) {
@@ -298,7 +307,7 @@ function App() {
                     <button
                       type="button"
                       disabled={job.status !== 'DONE'}
-                      onClick={() => handleDownload(job.id, job.resultFile)}
+                      onClick={() => handleDownload(job.id, getDownloadName(job))}
                     >
                       Download
                     </button>

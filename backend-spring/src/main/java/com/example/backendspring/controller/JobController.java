@@ -1,6 +1,7 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.model.JobResponseDto;
 import com.example.backendspring.model.PushJobRequest;
 import com.example.backendspring.model.StartJobMessage;
 import com.example.backendspring.security.UserContext;
@@ -32,13 +33,18 @@ public class JobController {
 //    }
 
     @GetMapping
-    public ResponseEntity<List<Job>> getAllJobs() {
-        return ResponseEntity.ok(jobService.getAllJobsByUserId(userContext.getUserId()));
+    public ResponseEntity<List<JobResponseDto>> getAllJobs() {
+        List<JobResponseDto> jobs = jobService.getAllJobsByUserId(userContext.getUserId())
+                .stream()
+                .map(JobResponseDto::from)
+                .toList();
+        return ResponseEntity.ok(jobs);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Job> getJobById(@PathVariable UUID id) {
-        return ResponseEntity.ok(jobService.findById(id, userContext.getUserId()));
+    public ResponseEntity<JobResponseDto> getJobById(@PathVariable UUID id) {
+        Job found = jobService.findById(id, userContext.getUserId());
+        return ResponseEntity.ok(JobResponseDto.from(found));
     }
 //
 //    @PutMapping("/{id}/status")

@@ -29,11 +29,11 @@ public class JwtService {
 
     public UUID extractUserId(String token) {
         String userId = Jwts.parser()
-                .verifyWith(secretKey)
+                .setSigningKey(secretKey)
                 .build()
-                .parseSignedClaims(token)
-                .getPayload()
+                .parseClaimsJws(token)
+                .getBody()
                 .getSubject();
-        return UUID.fromString(userId);
+      return UUID.fromString(userId);
     }
 }

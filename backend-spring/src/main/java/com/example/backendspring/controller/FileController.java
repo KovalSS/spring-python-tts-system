@@ -1,6 +1,7 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.model.JobResponseDto;
 import com.example.backendspring.security.UserContext;
 import com.example.backendspring.service.JobService;
 import com.example.backendspring.service.StorageService;
@@ -29,7 +30,7 @@ public class FileController {
     private final UserContext userContext;
 
     @PostMapping("/upload")
-    public ResponseEntity<Job> handleFileUpload(
+    public ResponseEntity<JobResponseDto> handleFileUpload(
             @RequestParam("file") MultipartFile file
     ){
 
@@ -38,12 +39,11 @@ public class FileController {
         }
         try {
             Job job = storageService.loadTextFile(file, userContext.getUserId());
-            return ResponseEntity.ok(job);
+            return ResponseEntity.ok(JobResponseDto.from(job));
 
         } catch (Exception e) {
             log.error("Failed to upload file: {}", e.getMessage());
-
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
