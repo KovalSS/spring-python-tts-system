@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -23,6 +22,7 @@ public class StorageService {
     private final MinioBucketsProperties buckets;
     private final MinioClient minioClient;
     private final JobRepository jobRepository;
+
 
     public Job loadTextFile(MultipartFile file, UUID userId){
         try (InputStream inputStream = file.getInputStream()) {
@@ -58,7 +58,7 @@ public class StorageService {
         }
     }
 
-    public InputStream downloadFile(Job job) throws Exception {
+    public InputStream downloadFile(Job job) {
 
         if(!job.getStatus().equals(JobStatus.DONE)){
             log.error("Job {} is not done yet", job.getId());
@@ -71,12 +71,11 @@ public class StorageService {
         }
 
         try{
-            InputStream stream = minioClient.getObject(
+            return minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(buckets.speech())
                             .object(job.getResultFile())
                             .build());
-            return stream;
         } catch (Exception e) {
             log.error("Error while loading object {} from minio", job.getResultFile());
             throw new RuntimeException(e);

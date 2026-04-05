@@ -27,6 +27,7 @@ export async function getAnonymousAuth() {
   return response.json();
 }
 
+
 export async function uploadTextFile(file, token) {
   const formData = new FormData();
   formData.append("file", file);
@@ -48,8 +49,22 @@ export async function getJobs(token) {
   return response.json();
 }
 
-export async function pushJob(jobId, token) {
-  await request(`/api/v1/jobs/${jobId}/push`, { method: "POST" }, token);
+export async function pushJob(jobId, token, settings = {}) {
+  const body = {};
+  if (settings.voiceId) body.voiceId = settings.voiceId;
+  if (settings.rate) body.rate = settings.rate;
+  if (settings.pitch) body.pitch = settings.pitch;
+  if (settings.volume) body.volume = settings.volume;
+
+  await request(
+    `/api/v1/jobs/${jobId}/push`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+    },
+    token
+  );
 }
 
 export async function deleteJob(jobId, token) {

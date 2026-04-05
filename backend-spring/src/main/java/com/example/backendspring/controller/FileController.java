@@ -11,6 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +29,9 @@ public class FileController {
     private final UserContext userContext;
 
     @PostMapping("/upload")
-    public ResponseEntity<Job> handleFileUpload(@RequestParam("file")MultipartFile file){
+    public ResponseEntity<Job> handleFileUpload(
+            @RequestParam("file") MultipartFile file
+    ){
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException();
@@ -45,7 +48,7 @@ public class FileController {
     }
 
     @GetMapping("/download/{jobId}")
-    public ResponseEntity<Resource> getAllFiles(@PathVariable("jobId")UUID jobId){
+    public ResponseEntity<Resource> getAllFiles(@PathVariable("jobId") @NonNull UUID jobId){
 
         Job job = jobService.findById(jobId, userContext.getUserId());
 

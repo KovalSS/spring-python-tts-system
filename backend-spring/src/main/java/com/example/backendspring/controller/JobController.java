@@ -1,6 +1,7 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.model.PushJobRequest;
 import com.example.backendspring.model.StartJobMessage;
 import com.example.backendspring.security.UserContext;
 import com.example.backendspring.service.JobService;
@@ -55,8 +56,27 @@ public class JobController {
     }
 
     @PostMapping("/{id}/push")
-    public ResponseEntity<StartJobMessage> publishJob(@PathVariable UUID id){
+    public ResponseEntity<StartJobMessage> publishJob(
+            @PathVariable UUID id,
+            @RequestBody(required = false) PushJobRequest params
+    ){
         Job found = jobService.findById(id, userContext.getUserId());
+        
+        if (params != null) {
+            if (params.getVoiceId() != null && !params.getVoiceId().isBlank()) {
+                found.setVoiceId(params.getVoiceId());
+            }
+            if (params.getRate() != null && !params.getRate().isBlank()) {
+                found.setRate(params.getRate());
+            }
+            if (params.getPitch() != null && !params.getPitch().isBlank()) {
+                found.setPitch(params.getPitch());
+            }
+            if (params.getVolume() != null && !params.getVolume().isBlank()) {
+                found.setVolume(params.getVolume());
+            }
+        }
+        
         try{
             StartJobMessage message =  messageService.sendJobToQueue(found);
             return ResponseEntity.ok(message);
