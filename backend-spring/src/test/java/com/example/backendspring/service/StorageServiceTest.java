@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -113,7 +114,7 @@ class StorageServiceTest {
                 "speech-bucket".equals(args.bucket()) && "speech/output.mp3".equals(args.object())
         ))).thenReturn(expectedStream);
 
-        java.io.InputStream result = storageService.downloadFile(job);
+        InputStream result = storageService.downloadFile(job);
 
         assertSame(expectedStream, result);
     }

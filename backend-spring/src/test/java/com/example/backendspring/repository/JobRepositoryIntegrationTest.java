@@ -4,6 +4,7 @@ import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
 import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.support.TestResources;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
+@Transactional
 class JobRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private JobRepository jobRepository;
 
-    @BeforeEach
-    void clearData() {
-        jobRepository.deleteAll();
-    }
 
     @Test
     void findAllByUserIdReturnsOnlyOwnedJobs() {

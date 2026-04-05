@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
@@ -26,6 +27,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
+@Transactional
 class DataOwnershipSecurityTest extends BaseIntegrationTest {
 
     @Autowired
@@ -51,7 +53,6 @@ class DataOwnershipSecurityTest extends BaseIntegrationTest {
                 .apply(springSecurity())
                 .build();
         
-        jobRepository.deleteAll();
         maliciousUserId = UUID.randomUUID();
         victimUserId = UUID.randomUUID();
         maliciousUserToken = jwtService.generateToken(maliciousUserId);

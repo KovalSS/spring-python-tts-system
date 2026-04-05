@@ -3,7 +3,6 @@ package com.example.backendspring.security;
 import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +14,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -22,7 +23,6 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
-@DisplayName("JWT Filter Security Tests")
 class JwtFilterSecurityTest extends BaseIntegrationTest {
 
     @Autowired
@@ -47,14 +47,12 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should reject request with missing Authorization header")
     void testMissingAuthorizationHeader() throws Exception {
         mockMvc.perform(get("/api/v1/jobs"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("Should reject token with corrupted signature")
     void testCorruptedTokenSignature() throws Exception {
         String corruptedToken = validToken.substring(0, validToken.length() - 1) + "X";
         
@@ -64,7 +62,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should reject token with missing segment")
     void testTokenWithMissingSegment() throws Exception {
         String malformedToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0";
         
@@ -74,7 +71,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should be case-sensitive for Bearer scheme")
     void testBearerSchemeCaseSensitivity() throws Exception {
         mockMvc.perform(get("/api/v1/jobs")
                 .header("Authorization", "BEARER " + validToken))
@@ -82,7 +78,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should accept Bearer with exact case")
     void testBearerWithExactCase() throws Exception {
         mockMvc.perform(get("/api/v1/jobs")
                 .header("Authorization", "Bearer " + validToken))
@@ -90,7 +85,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should clear security context on invalid token")
     void testSecurityContextClearedOnInvalidToken() throws Exception {
         // First request with invalid token
         mockMvc.perform(get("/api/v1/jobs")
@@ -104,7 +98,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should reject 'null' string as token")
     void testNullStringToken() throws Exception {
         mockMvc.perform(get("/api/v1/jobs")
                 .header("Authorization", "Bearer null"))
@@ -112,7 +105,6 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should reject 'undefined' string as token")
     void testUndefinedStringToken() throws Exception {
         mockMvc.perform(get("/api/v1/jobs")
                 .header("Authorization", "Bearer undefined"))
@@ -120,21 +112,14 @@ class JwtFilterSecurityTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Should extract correct user ID from valid JWT token")
     void testValidTokenExtraction() {
         UUID extracted = jwtService.extractUserId(validToken);
-        assert extracted.equals(userId);
+        assertEquals(extracted, userId);
     }
 
     @Test
-    @DisplayName("Should fail to extract user ID from invalid token")
     void testInvalidTokenRejection() {
-        try {
-            jwtService.extractUserId("invalid.token.format");
-            throw new AssertionError("Should have thrown exception");
-        } catch (Exception e) {
-            assert e.getMessage() != null;
-        }
+        assertThrows(RuntimeException.class, ()->jwtService.extractUserId("invalid.token.format"));
     }
 }
 

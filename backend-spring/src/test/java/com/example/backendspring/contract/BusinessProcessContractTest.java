@@ -6,6 +6,7 @@ import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.service.JwtService;
 import com.example.backendspring.support.TestResources;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
+@Transactional
 class BusinessProcessContractTest extends BaseIntegrationTest {
 
     @Autowired
@@ -45,7 +47,6 @@ class BusinessProcessContractTest extends BaseIntegrationTest {
                 .apply(springSecurity())
                 .build();
 
-        jobRepository.deleteAll();
         userToken = jwtService.generateToken(TestResources.USER_ID);
     }
 
