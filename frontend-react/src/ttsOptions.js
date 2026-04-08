@@ -1,8 +1,18 @@
 export const VOICE_OPTIONS = [
   { value: '', label: 'За замовчуванням' },
-  { value: 'uk-UA-OstapNeural', label: 'Український чоловічий голос — Остап' },
-  { value: 'uk-UA-PolinaNeural', label: 'Український жіночий голос — Поліна' },
-  { value: 'en-US-JennyNeural', label: 'Англійський (US) — Дженні' },
+  { value: 'uk-UA-OstapNeural', label: 'Українська — Остап (Чоловічий)' },
+  { value: 'uk-UA-PolinaNeural', label: 'Українська — Поліна (Жіночий)' },
+  { value: 'en-US-JennyNeural', label: 'Англійська (US) — Дженні (Жіночий)' },
+  { value: 'en-US-GuyNeural', label: 'Англійська (US) — Гай (Чоловічий)' },
+  { value: 'en-US-AriaNeural', label: 'Англійська (US) — Арія (Жіночий)' },
+  { value: 'en-GB-SoniaNeural', label: 'Англійська (UK) — Соня (Жіночий)' },
+  { value: 'en-GB-RyanNeural', label: 'Англійська (UK) — Райан (Чоловічий)' },
+  { value: 'ru-RU-SvetlanaNeural', label: 'Російська — Світлана (Жіночий)' },
+  { value: 'ru-RU-DmitryNeural', label: 'Російська — Дмитро (Чоловічий)' },
+  { value: 'pl-PL-MarekNeural', label: 'Польська — Марек (Чоловічий)' },
+  { value: 'pl-PL-AgnieszkaNeural', label: 'Польська — Агнєшка (Жіночий)' },
+  { value: 'de-DE-KillianNeural', label: 'Німецька — Кілліан (Чоловічий)' },
+  { value: 'de-DE-AmalaNeural', label: 'Німецька — Амала (Жіночий)' },
 ];
 
 export const RATE_OPTIONS = [
