@@ -3,20 +3,17 @@ package com.example.backendspring.service;
 import com.example.backendspring.config.properties.RabbitMQProperties;
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
+import com.example.backendspring.model.JobUpdateEvent;
 import com.example.backendspring.model.StartJobMessage;
 import com.example.backendspring.model.UpdateJobMessage;
 import com.example.backendspring.repository.JobRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-
-import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,6 +22,7 @@ public class MessageService {
     private final RabbitMQProperties properties;
     private final RabbitTemplate rabbitTemplate;
     private final JobRepository jobRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     public StartJobMessage sendJobToQueue(Job job) {
         if (job.getStatus() == JobStatus.QUEUED ||
@@ -68,6 +66,15 @@ public class MessageService {
                     job.setResultFile(message.getResultFile());
                 }
                 jobRepository.save(job);
+                simpMessagingTemplate.convertAndSendToUser(
+                        job.getUserId().toString(),
+                        "/queue/jobs",
+                        JobUpdateEvent.builder()
+                                .jobId(job.getId())
+                                .status(job.getStatus().name())
+                                .resultFile(job.getResultFile())
+                                .build()
+                );
                 log.info("Updated status for job {}: {}", message.getJobId(), newStatus);
             });
         } catch (Exception e) {

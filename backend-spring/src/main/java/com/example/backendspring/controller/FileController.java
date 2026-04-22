@@ -1,6 +1,7 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.model.JobResponseDto;
 import com.example.backendspring.security.UserContext;
 import com.example.backendspring.service.JobService;
 import com.example.backendspring.service.StorageService;
@@ -11,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,24 +30,25 @@ public class FileController {
     private final UserContext userContext;
 
     @PostMapping("/upload")
-    public ResponseEntity<Job> handleFileUpload(@RequestParam("file")MultipartFile file){
+    public ResponseEntity<JobResponseDto> handleFileUpload(
+            @RequestParam("file") MultipartFile file
+    ){
 
         if (file.isEmpty()) {
             throw new IllegalArgumentException();
         }
         try {
             Job job = storageService.loadTextFile(file, userContext.getUserId());
-            return ResponseEntity.ok(job);
+            return ResponseEntity.ok(JobResponseDto.from(job));
 
         } catch (Exception e) {
             log.error("Failed to upload file: {}", e.getMessage());
-
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
     @GetMapping("/download/{jobId}")
-    public ResponseEntity<Resource> getAllFiles(@PathVariable("jobId")UUID jobId){
+    public ResponseEntity<Resource> getAllFiles(@PathVariable("jobId") @NonNull UUID jobId){
 
         Job job = jobService.findById(jobId, userContext.getUserId());
 

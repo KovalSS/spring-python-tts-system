@@ -1,6 +1,8 @@
 package com.example.backendspring.controller;
 
 import com.example.backendspring.entity.Job;
+import com.example.backendspring.model.JobResponseDto;
+import com.example.backendspring.model.PushJobRequest;
 import com.example.backendspring.model.StartJobMessage;
 import com.example.backendspring.security.UserContext;
 import com.example.backendspring.service.JobService;
@@ -31,13 +33,18 @@ public class JobController {
 //    }
 
     @GetMapping
-    public ResponseEntity<List<Job>> getAllJobs() {
-        return ResponseEntity.ok(jobService.getAllJobsByUserId(userContext.getUserId()));
+    public ResponseEntity<List<JobResponseDto>> getAllJobs() {
+        List<JobResponseDto> jobs = jobService.getAllJobsByUserId(userContext.getUserId())
+                .stream()
+                .map(JobResponseDto::from)
+                .toList();
+        return ResponseEntity.ok(jobs);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Job> getJobById(@PathVariable UUID id) {
-        return ResponseEntity.ok(jobService.findById(id, userContext.getUserId()));
+    public ResponseEntity<JobResponseDto> getJobById(@PathVariable UUID id) {
+        Job found = jobService.findById(id, userContext.getUserId());
+        return ResponseEntity.ok(JobResponseDto.from(found));
     }
 //
 //    @PutMapping("/{id}/status")
@@ -55,8 +62,27 @@ public class JobController {
     }
 
     @PostMapping("/{id}/push")
-    public ResponseEntity<StartJobMessage> publishJob(@PathVariable UUID id){
+    public ResponseEntity<StartJobMessage> publishJob(
+            @PathVariable UUID id,
+            @RequestBody(required = false) PushJobRequest params
+    ){
         Job found = jobService.findById(id, userContext.getUserId());
+        
+        if (params != null) {
+            if (params.getVoiceId() != null && !params.getVoiceId().isBlank()) {
+                found.setVoiceId(params.getVoiceId());
+            }
+            if (params.getRate() != null && !params.getRate().isBlank()) {
+                found.setRate(params.getRate());
+            }
+            if (params.getPitch() != null && !params.getPitch().isBlank()) {
+                found.setPitch(params.getPitch());
+            }
+            if (params.getVolume() != null && !params.getVolume().isBlank()) {
+                found.setVolume(params.getVolume());
+            }
+        }
+        
         try{
             StartJobMessage message =  messageService.sendJobToQueue(found);
             return ResponseEntity.ok(message);

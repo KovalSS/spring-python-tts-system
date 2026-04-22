@@ -2,7 +2,7 @@ package com.example.backendspring.security;
 
 import com.example.backendspring.entity.Job;
 import com.example.backendspring.entity.JobStatus;
-import com.example.backendspring.integration.PostgresContainerSupport;
+import com.example.backendspring.integration.BaseIntegrationTest;
 import com.example.backendspring.repository.JobRepository;
 import com.example.backendspring.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -26,8 +28,8 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 @ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
 @ActiveProfiles("test")
-@DisplayName("Security Integration Tests")
-class SecurityIntegrationTest extends PostgresContainerSupport {
+@Transactional
+class SecurityIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -51,7 +53,6 @@ class SecurityIntegrationTest extends PostgresContainerSupport {
                 .apply(springSecurity())
                 .build();
         
-        jobRepository.deleteAll();
         userId = UUID.randomUUID();
         anotherUserId = UUID.randomUUID();
         validUserToken = jwtService.generateToken(userId);
@@ -144,7 +145,9 @@ class SecurityIntegrationTest extends PostgresContainerSupport {
         mockMvc.perform(get("/api/v1/jobs/" + savedJob.getId())
                 .header("Authorization", "Bearer " + validUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").isString());
+                .andExpect(jsonPath("$.id").isString())
+                .andExpect(jsonPath("$.sourceFile").doesNotExist())
+                .andExpect(jsonPath("$.resultFile").doesNotExist());
     }
 
     @Test
@@ -162,7 +165,7 @@ class SecurityIntegrationTest extends PostgresContainerSupport {
                 .header("Authorization", "Bearer " + validUserToken))
                 .andExpect(status().isNotFound());
 
-        assert jobRepository.findById(savedJob.getId()).isPresent();
+        assertTrue(jobRepository.findById(savedJob.getId()).isPresent());
     }
 
     @Test
@@ -180,7 +183,7 @@ class SecurityIntegrationTest extends PostgresContainerSupport {
                 .header("Authorization", "Bearer " + validUserToken))
                 .andExpect(status().isOk());
 
-        assert jobRepository.findById(savedJob.getId()).isEmpty();
+        assertTrue(jobRepository.findById(savedJob.getId()).isEmpty());
     }
 
     @Test
